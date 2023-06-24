@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include <algorithm>
+#include <thread>
 
 int** Mesh::zBuffer = NULL;
 
@@ -60,6 +61,17 @@ void Mesh::Load(const char* filename)
 	}
 }
 
+Vector3 Mesh::GetCenter()
+{
+	Vector3 center = Vector3(0, 0, 0);
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		center = center + vertices[i].position;
+	}
+	center = center / vertices.size();
+	return center;
+}
+
 Vertex Mesh::Interpolate(Vertex& a, Vertex& b, Vertex& c, float u, float v)
 {
 	Vertex i;
@@ -70,7 +82,7 @@ Vertex Mesh::Interpolate(Vertex& a, Vertex& b, Vertex& c, float u, float v)
 	return i;
 }
 
-void Mesh::DrawPixel(Vertex& i)
+inline void Mesh::DrawPixel(Vertex& i)
 {
 	int x = (int)i.position.x;
 	int y = (int)i.position.y;
@@ -121,7 +133,7 @@ void Mesh::DrawTriangle(Vertex a, Vertex b, Vertex c)
 			{
 				continue;
 			}
-			Vertex i = Interpolate(a, b, c, barycentric.x, barycentric.y);
+			Vertex i = a; Interpolate(a, b, c, barycentric.x, barycentric.y);
 			if (zBuffer[x][y] < i.position.z)
 			{
 				i.position.x = x;
@@ -131,6 +143,39 @@ void Mesh::DrawTriangle(Vertex a, Vertex b, Vertex c)
 			}
 		}
 	}
+}
+
+void Mesh::DrawTriangles(int start, int end)
+{
+	glBegin(GL_POINTS);
+	Vector4 center = Vector4((float)screenWidth / 2, (float)screenHeight / 2, 0, 0);
+
+	CV::color(0, 0, 0);
+	for (int i = start; i < end; i++)
+	{
+		Triangle t = triangles[i];
+		Vertex v1;
+		Vertex v2;
+		Vertex v3;
+
+		Vector4 a = transform * vertices[t.a].position - center;
+		Vector4 b = transform * vertices[t.b].position - center;
+		Vector4 c = transform * vertices[t.c].position - center;
+
+		//não funciona com escalas não homogeneas
+		v1.normal = transform * vertices[t.a].normal;
+		v2.normal = transform * vertices[t.b].normal;
+		v3.normal = transform * vertices[t.c].normal;
+
+		v1.position = Vector4(a.x / a.w, a.y / a.w, a.z, a.w) + center;
+		v2.position = Vector4(b.x / b.w, b.y / b.w, b.z, b.w) + center;
+		v3.position = Vector4(c.x / c.w, c.y / c.w, c.z, c.w) + center;
+
+		float color = (float)i / triangles.size();
+		CV::color(color, color, color);
+		DrawTriangle(v1, v2, v3);
+	}
+	glEnd();
 }
 
 void Mesh::Draw()
@@ -164,4 +209,25 @@ void Mesh::Draw()
 		DrawTriangle(v1, v2, v3);
 	}
 	glEnd();
+}
+
+void Mesh::ParallelDraw()
+{
+	const int numThreads = 2;
+	std::thread threads[numThreads];	
+	int step = triangles.size() / numThreads;
+	int start = 0;
+	int end = step;
+
+	for (int i = 0; i < numThreads; i++)
+	{
+		threads[i] = std::thread(&Mesh::DrawTriangles, this, start, end);
+		start += step;
+		end += step;
+	}
+
+	for (int i = 0; i < numThreads; i++)
+	{
+		threads[i].join();
+	}
 }

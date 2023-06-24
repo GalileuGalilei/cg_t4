@@ -1,15 +1,17 @@
 #include "Piston.h"
+#include <thread>
 
 Piston::Piston()
 {
 	ObjLoader loader;
 	loader.Load("piston.obj");
 
-	Mesh* meshes[5]{nullptr};
+	Mesh* meshes[5];
 
 	for (int i = 0; i < loader.vertexAcc.size() - 1; i++)
 	{
 		meshes[i] = new Mesh();
+		meshes[i]->color = Vector3(1, 1, 1);
 
 		for (int j = loader.vertexAcc[i]; j < loader.vertexAcc[i + 1]; j++)
 		{
@@ -21,33 +23,44 @@ Piston::Piston()
 
 		for (int j = loader.triangleAcc[i]; j < loader.triangleAcc[i + 1]; j += 3)
 		{
-			meshes[i]->triangles.push_back(Triangle(loader.triangles[j], loader.triangles[j + 1], loader.triangles[j + 2]));
+			int va = loader.vertexAcc[i];
+			meshes[i]->triangles.push_back(Triangle(loader.triangles[j] - va, loader.triangles[j + 1] - va, loader.triangles[j + 2] - va));
 		}
 	}
-	/*
+	
 	Float4x4 aux;
 	aux.GeneratePerpectiveMatrix(200, 100);
 	transform = transform * aux;
 
-	aux.GenerateTranslationMatrix(200, 250, -250);
+	aux.GenerateTranslationMatrix(300, 300, -250);
 	transform = transform * aux;
 
-	aux.GenerateScaleMatrix(50);
+	//todo: fix this
+	bottonAxisCenter = meshes[2]->GetCenter();
+	topAxisCenter = meshes[4]->GetCenter();
+	Vector3 volantCenter = meshes[3]->GetCenter();
+
+	aux.GenerateScaleMatrix(70);
 	transform = transform * aux;
 
-	aux.GenerateRotationMatrix(Vector3(0, 1, 0), 0.1);
+	aux.GenerateRotationMatrix(Vector3(0, 1, 0), 1.65);
 	transform = transform * aux;
-	*/
+
+	aux.GenerateRotationMatrix(Vector3(0, 1, 0), 0.5);
+	volantRotation = aux;
+	
 	piston = meshes[0];
 	piston->transform = transform;
-	bottonAxis = meshes[1];
-	bottonAxis->transform = transform;
-	topAxis = meshes[2];
-	topAxis->transform = transform;
-	vertical = meshes[3];
+	vertical = meshes[1];
 	vertical->transform = transform;
-	volant = meshes[4];
+	bottonAxis = meshes[2];
+	bottonAxis->transform = transform;
+	volant = meshes[3];
 	volant->transform = transform;
+	topAxis = meshes[4];
+	topAxis->transform = transform;
+
+	volantRotation.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 0.08);
 }
 
 Piston::~Piston()
@@ -57,8 +70,13 @@ Piston::~Piston()
 void Piston::OnRender(OnRenderEvent* args)
 {
 	piston->Draw();
-	bottonAxis->Draw();
-	topAxis->Draw();
 	vertical->Draw();
+	bottonAxis->Draw();
 	volant->Draw();
+	topAxis->Draw();
+}
+
+void Piston::OnUpdate(OnUpdateEvent* args)
+{
+	volant->transform = volant->transform * volantRotation;
 }

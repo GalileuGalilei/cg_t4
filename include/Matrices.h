@@ -85,6 +85,8 @@ public:
 
 	void GenerateRotationMatrix(Vector3 axis, float angle);
 
+	void GenerateRotationMatrix(Vector3 center, Vector3 axis, float angle);
+
 	void GenerateLookAt(Vector3 eye, Vector3 center, Vector3 up);
 
 	Float4x4 Transpose();

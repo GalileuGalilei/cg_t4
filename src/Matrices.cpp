@@ -27,10 +27,6 @@ Float3x3::Float3x3()
 
 void Float3x3::GenerateRotateAroundMatrix(Vector3 axis, float angle)
 {
-	//considerando a,b,c,d como linhas, crie a matriz de rotação em torno de um eixo
-	//axis é o vetor que representa o eixo
-	//angle é o ângulo de rotação
-
 	a.set(cos(angle) + axis.x * axis.x * (1 - cos(angle)), axis.x * axis.y * (1 - cos(angle)) - axis.z * sin(angle), axis.x * axis.z * (1 - cos(angle)) + axis.y * sin(angle));
 	b.set(axis.y * axis.x * (1 - cos(angle)) + axis.z * sin(angle), cos(angle) + axis.y * axis.y * (1 - cos(angle)), axis.y * axis.z * (1 - cos(angle)) - axis.x * sin(angle));
 	c.set(axis.z * axis.x * (1 - cos(angle)) - axis.y * sin(angle), axis.z * axis.y * (1 - cos(angle)) + axis.x * sin(angle), cos(angle) + axis.z * axis.z * (1 - cos(angle)));
@@ -95,6 +91,20 @@ void Float4x4::GenerateRotationMatrix(Vector3 axis, float angle)
 	Float3x3 aux;
 	aux.GenerateRotateAroundMatrix(axis, angle);
 	*this = aux;
+}
+
+void Float4x4::GenerateRotationMatrix(Vector3 center, Vector3 axis, float angle)
+{
+	Float4x4 translation1;
+	translation1.GenerateTranslationMatrix(-center.x, -center.y, -center.z);
+	//a matriz de rotacao deve rotacionar o objeto
+	Float4x4 rotation;
+	rotation.GenerateRotationMatrix(axis, angle);
+	//a matriz de translacao inversa deve transladar o objeto de volta para o ponto original
+	Float4x4 translation2;
+	translation2.GenerateTranslationMatrix(center.x, center.y, center.z);
+	//a matriz resultante deve ser atribuida a this
+	*this = translation2 * rotation * translation1;
 }
 
 void Float4x4::GenerateLookAt(Vector3 eye, Vector3 center, Vector3 up)

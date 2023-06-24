@@ -174,6 +174,12 @@ public:
 		return(aux);
 	}
 
+	Vector3 operator / (const float s)
+	{
+		Vector3 aux(x / s, y / s, z / s);
+		return(aux);
+	}
+
 	Vector3 operator - (const Vector3& v)
 	{
 		Vector3 aux(x - v.x, y - v.y, z - v.z);

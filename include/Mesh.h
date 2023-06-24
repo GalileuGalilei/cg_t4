@@ -35,6 +35,8 @@ private:
 	//vertex shader equivalent
 	void DrawTriangle(Vertex a, Vertex b, Vertex c);
 
+	void DrawTriangles(int start, int end);
+
 	//fragment shader equivalent
 	void DrawPixel(Vertex& interpolated);
 
@@ -48,6 +50,8 @@ public:
 	void Load(const char* filename);
 
 	void Draw();
+	void ParallelDraw();
+	Vector3 GetCenter();
 
 	static void SetScreen(int screenWidth, int screenHeight);
 	static void SetLightSource(Vector3 lightSource);

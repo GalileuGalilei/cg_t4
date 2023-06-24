@@ -1,5 +1,7 @@
 #include "GameManager.h"
+#include "Mesh.h"
 #include <chrono>
+
 
 GameManager* GameManager::instance = nullptr;
 
@@ -47,10 +49,12 @@ void GameManager::ClockEventListener(BaseEvent* event)
 
 void GameManager::OnUpdate(OnUpdateEvent* args)
 {
-
+	Mesh::resetZBuffer();
 }
 
 void GameManager::SetScreen(Vector2 screenSize)
 {
 	screenSize = screenSize;
+	Mesh::SetScreen(screenSize.x, screenSize.y);
+	Mesh::SetLightSource(Vector3(-5, 10, 1));
 }

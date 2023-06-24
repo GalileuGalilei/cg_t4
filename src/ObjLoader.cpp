@@ -31,7 +31,7 @@ void ObjLoader::Load(const char* filename)
 			break;
 		}
 
-		if (currentStr[0] == 'o')
+		if (strcmp(currentStr, "o") == 0)
 		{	
 			vertexAcc.push_back(currentVertexSize);
 			triangleAcc.push_back(currentTriangleSize);
