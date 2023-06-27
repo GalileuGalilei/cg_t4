@@ -43,7 +43,7 @@ Piston::Piston()
 	aux.GenerateScaleMatrix(70);
 	transform = transform * aux;
 
-	aux.GenerateRotationMatrix(Vector3(0, 1, 0), 1.65);
+	aux.GenerateRotationMatrix(Vector3(0, 1, 0), -1.65);
 	transform = transform * aux;
 
 	aux.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 0.5);
@@ -60,6 +60,17 @@ Piston::Piston()
 	volant->transform = transform;
 	topAxis = meshes[4];
 	topAxis->transform = transform;
+
+	for (Vertex v : meshes[1]->vertices)
+	{
+		if (v.position.y < verticalBotton.y)
+		{
+			verticalBotton.y = v.position.y;
+		}
+	}
+
+	verticalBotton.x = bottonAxisCenter.x;
+	verticalBotton.z = bottonAxisCenter.z;
 }
 
 Piston::~Piston()
@@ -68,7 +79,7 @@ Piston::~Piston()
 
 void Piston::OnRender(OnRenderEvent* args)
 {
-	piston->Draw();
+//	piston->Draw();
 	vertical->Draw();
 //	bottonAxis->Draw();
 	volant->Draw();
@@ -80,20 +91,35 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	
 	Vector4 aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
 	float dy = 0;
+	Vector2 v1 = Vector2(0, 1);
+	Vector2 v2 = Vector2(0, 1);
 
 	aux = topAxis->transform * aux;
 	dy = aux.y;
+	v1.x = aux.x;
 	topAxis->transform = topAxis->transform * topAxisTransform;
 
 	aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
 	aux = topAxis->transform * aux;
 	dy = aux.y - dy;
+	v2.x = aux.x;
+	float angle = v2.Angle(v1);
 
 	pistonTransform.b.set(0, 1, 0, dy/70);
-	verticalTransform.b.set(0, 1, 0, dy / 70);
+
+	Float4x4 temp;
+	temp.GenerateTranslationMatrix(0, -currentHeight, 0);
+	verticalTransform = temp;
+	temp.GenerateRotationMatrix(verticalBotton, Vector3(1, 0, 0), -angle * 360);
+	verticalTransform = verticalTransform * temp;
+	temp.GenerateTranslationMatrix(0, currentHeight, 0);
+	verticalTransform = verticalTransform * temp;
+	verticalTransform.b.w += dy / 70;
+	currentHeight += dy / 70;
+	
+	
 
 	volant->transform = volant->transform * volantTransform;
 	piston->transform = piston->transform * pistonTransform;
 	vertical->transform = vertical->transform * verticalTransform;
-	
 }

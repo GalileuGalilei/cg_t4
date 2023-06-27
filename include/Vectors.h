@@ -271,6 +271,15 @@ public:
 		return(x * v.x + y * v.y);
 	}
 
+	float Angle(const Vector2& v)
+	{
+		float dot = Dot(v);
+		float det = x * v.y - y * v.x;
+		
+
+		return (float)atan2(det, dot);
+	}
+
 	Vector2 operator - (const Vector2& v)
 	{
 		Vector2 aux(x - v.x, y - v.y);

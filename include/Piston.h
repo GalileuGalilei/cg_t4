@@ -15,6 +15,7 @@ private:
 	Vector3 bottonAxisCenter;
 	Vector3 topAxisCenter;
 	Vector3 volantCenter;
+	Vector4 verticalBotton = Vector4(0,99999,0,1);
 
 	Float4x4 transform;
 
@@ -23,6 +24,8 @@ private:
 	Float4x4 verticalTransform;
 	Float4x4 bottonAxisTransform;
 	Float4x4 topAxisTransform;
+
+	float currentHeight = 0;
 
 	void OnRender(OnRenderEvent* args) override;
 	void OnUpdate(OnUpdateEvent* args) override;
