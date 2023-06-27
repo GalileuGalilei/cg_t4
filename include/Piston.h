@@ -14,9 +14,15 @@ private:
 
 	Vector3 bottonAxisCenter;
 	Vector3 topAxisCenter;
+	Vector3 volantCenter;
 
 	Float4x4 transform;
-	Float4x4 volantRotation;
+
+	Float4x4 volantTransform;
+	Float4x4 pistonTransform;
+	Float4x4 verticalTransform;
+	Float4x4 bottonAxisTransform;
+	Float4x4 topAxisTransform;
 
 	void OnRender(OnRenderEvent* args) override;
 	void OnUpdate(OnUpdateEvent* args) override;

@@ -37,8 +37,8 @@ Piston::Piston()
 
 	//todo: fix this
 	bottonAxisCenter = meshes[2]->GetCenter();
+	volantCenter = meshes[3]->GetCenter();
 	topAxisCenter = meshes[4]->GetCenter();
-	Vector3 volantCenter = meshes[3]->GetCenter();
 
 	aux.GenerateScaleMatrix(70);
 	transform = transform * aux;
@@ -46,8 +46,9 @@ Piston::Piston()
 	aux.GenerateRotationMatrix(Vector3(0, 1, 0), 1.65);
 	transform = transform * aux;
 
-	aux.GenerateRotationMatrix(Vector3(0, 1, 0), 0.5);
-	volantRotation = aux;
+	aux.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 0.5);
+	topAxisTransform = aux;
+	volantTransform = aux;
 	
 	piston = meshes[0];
 	piston->transform = transform;
@@ -59,8 +60,6 @@ Piston::Piston()
 	volant->transform = transform;
 	topAxis = meshes[4];
 	topAxis->transform = transform;
-
-	volantRotation.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 0.08);
 }
 
 Piston::~Piston()
@@ -71,12 +70,30 @@ void Piston::OnRender(OnRenderEvent* args)
 {
 	piston->Draw();
 	vertical->Draw();
-	bottonAxis->Draw();
+//	bottonAxis->Draw();
 	volant->Draw();
 	topAxis->Draw();
 }
 
 void Piston::OnUpdate(OnUpdateEvent* args)
 {
-	volant->transform = volant->transform * volantRotation;
+	
+	Vector4 aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
+	float dy = 0;
+
+	aux = topAxis->transform * aux;
+	dy = aux.y;
+	topAxis->transform = topAxis->transform * topAxisTransform;
+
+	aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
+	aux = topAxis->transform * aux;
+	dy = aux.y - dy;
+
+	pistonTransform.b.set(0, 1, 0, dy/70);
+	verticalTransform.b.set(0, 1, 0, dy / 70);
+
+	volant->transform = volant->transform * volantTransform;
+	piston->transform = piston->transform * pistonTransform;
+	vertical->transform = vertical->transform * verticalTransform;
+	
 }

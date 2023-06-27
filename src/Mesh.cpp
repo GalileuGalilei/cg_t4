@@ -133,7 +133,7 @@ void Mesh::DrawTriangle(Vertex a, Vertex b, Vertex c)
 			{
 				continue;
 			}
-			Vertex i = a; Interpolate(a, b, c, barycentric.x, barycentric.y);
+			Vertex i = Interpolate(a, b, c, barycentric.x, barycentric.y);
 			if (zBuffer[x][y] < i.position.z)
 			{
 				i.position.x = x;
