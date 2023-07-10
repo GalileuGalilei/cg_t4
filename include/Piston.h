@@ -15,7 +15,7 @@ private:
 	Vector3 bottonAxisCenter;
 	Vector3 topAxisCenter;
 	Vector3 volantCenter;
-	Vector4 verticalBotton = Vector4(0,99999,0,1);
+	Vector4 verticalBotton = Vector4(0,-99999,0,1);
 
 	Float4x4 transform;
 

@@ -40,7 +40,7 @@ Piston::Piston()
 	volantCenter = meshes[3]->GetCenter();
 	topAxisCenter = meshes[4]->GetCenter();
 
-	aux.GenerateScaleMatrix(70);
+	aux.GenerateScaleMatrix(50);
 	transform = transform * aux;
 
 	aux.GenerateRotationMatrix(Vector3(0, 1, 0), -1.65);
@@ -63,14 +63,13 @@ Piston::Piston()
 
 	for (Vertex v : meshes[1]->vertices)
 	{
-		if (v.position.y < verticalBotton.y)
+		if (v.position.y > verticalBotton.y)
 		{
 			verticalBotton.y = v.position.y;
 		}
 	}
 
-	verticalBotton.x = bottonAxisCenter.x;
-	verticalBotton.z = bottonAxisCenter.z;
+	
 }
 
 Piston::~Piston()
@@ -79,7 +78,7 @@ Piston::~Piston()
 
 void Piston::OnRender(OnRenderEvent* args)
 {
-//	piston->Draw();
+	piston->Draw();
 	vertical->Draw();
 //	bottonAxis->Draw();
 	volant->Draw();
@@ -88,34 +87,41 @@ void Piston::OnRender(OnRenderEvent* args)
 
 void Piston::OnUpdate(OnUpdateEvent* args)
 {
-	
-	Vector4 aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
-	float dy = 0;
-	Vector2 v1 = Vector2(0, 1);
-	Vector2 v2 = Vector2(0, 1);
+	Vector2 disp = Vector2(0, 0);
+	Vector2 dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
 
+	Vector4 aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
 	aux = topAxis->transform * aux;
-	dy = aux.y;
-	v1.x = aux.x;
+	disp = Vector2(aux.x, aux.y);
 	topAxis->transform = topAxis->transform * topAxisTransform;
 
 	aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
 	aux = topAxis->transform * aux;
-	dy = aux.y - dy;
-	v2.x = aux.x;
-	float angle = v2.Angle(v1);
+	disp = Vector2(aux.x, aux.y) - disp;
+	dir = Vector2(-dir.y, dir.x);
+	dir.normalize();
+	disp = disp.ortoProject(dir);
+	dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
+	float angle = dir.Angle(dir + disp);
+	disp = Vector2(-disp.x, disp.y);
 
-	pistonTransform.b.set(0, 1, 0, dy/70);
+	
+
+
+	//tá certo, não mexe
+
+	pistonTransform.c.set(0, 0, 1, disp.x/50);
+	pistonTransform.b.set(0, 1, 0, disp.y/50);
 
 	Float4x4 temp;
 	temp.GenerateTranslationMatrix(0, -currentHeight, 0);
 	verticalTransform = temp;
-	temp.GenerateRotationMatrix(verticalBotton, Vector3(1, 0, 0), -angle * 360);
+	temp.GenerateRotationMatrix(bottonAxisCenter, Vector3(1, 0, 0), (angle)*0.1);
 	verticalTransform = verticalTransform * temp;
 	temp.GenerateTranslationMatrix(0, currentHeight, 0);
 	verticalTransform = verticalTransform * temp;
-	verticalTransform.b.w += dy / 70;
-	currentHeight += dy / 70;
+	verticalTransform.b.w += disp.y / 50;
+	currentHeight += disp.y / 50;
 	
 	
 

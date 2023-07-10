@@ -28,7 +28,7 @@ void keyboardUp(int key)
 
 void render()
 {
-    CV::color(0, 0, 0);
+    CV::color(1, 1, 1);
     CV::rectFill(0, 0, 620, 620);
 
     OnUpdateEvent updateEvent = OnUpdateEvent();

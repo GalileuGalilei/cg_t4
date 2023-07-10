@@ -245,6 +245,13 @@ public:
 		y = other.y;
 	}
 
+	//faz a projeção ortogonal deste vetor sobre o vetor other
+	Vector2 ortoProject(Vector2& other)
+	{
+		Vector2 aux = other * (Dot(other) / other.Dot(other));
+		return aux;
+	}
+
 	void set(float _x, float _y)
 	{
 		x = _x;
