@@ -10,6 +10,7 @@ private:
 public:
 	std::vector<Vector3> vertices;
 	std::vector<Vector3> normals;
+	std::vector<Vector3> faceNormals;
 	std::vector<int> triangles; // 3 indices per triangle
 	std::vector<int> vertexAcc;
 	std::vector<int> triangleAcc;

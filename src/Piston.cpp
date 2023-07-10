@@ -1,5 +1,6 @@
 #include "Piston.h"
 #include <thread>
+#include "GameManager.h"
 
 Piston::Piston()
 {
@@ -18,6 +19,7 @@ Piston::Piston()
 			Vertex v;
 			v.position = Vector4(loader.vertices[j].x, loader.vertices[j].y, loader.vertices[j].z, 1);
 			v.normal = Vector4(loader.normals[j].x, loader.normals[j].y, loader.normals[j].z, 0);
+			
 			meshes[i]->vertices.push_back(v);
 		}
 
@@ -36,19 +38,11 @@ Piston::Piston()
 	transform = transform * aux;
 
 	//todo: fix this
-	bottonAxisCenter = meshes[2]->GetCenter();
 	volantCenter = meshes[3]->GetCenter();
 	topAxisCenter = meshes[4]->GetCenter();
 
 	aux.GenerateScaleMatrix(50);
 	transform = transform * aux;
-
-	aux.GenerateRotationMatrix(Vector3(0, 1, 0), -1.65);
-	transform = transform * aux;
-
-	aux.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 0.5);
-	topAxisTransform = aux;
-	volantTransform = aux;
 	
 	piston = meshes[0];
 	piston->transform = transform;
@@ -69,7 +63,7 @@ Piston::Piston()
 		}
 	}
 
-	
+	bottonAxisCenter = meshes[2]->GetCenter();
 }
 
 Piston::~Piston()
@@ -87,7 +81,14 @@ void Piston::OnRender(OnRenderEvent* args)
 
 void Piston::OnUpdate(OnUpdateEvent* args)
 {
+	Float4x4 rot;
+	rot.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 5 * GameManager::deltaTime);
+	topAxisTransform = rot;
+	volantTransform = rot;
+
+	
 	Vector2 disp = Vector2(0, 0);
+	
 	Vector2 dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
 
 	Vector4 aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
@@ -103,29 +104,30 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	disp = disp.ortoProject(dir);
 	dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
 	float angle = dir.Angle(dir + disp);
-	disp = Vector2(-disp.x, disp.y);
-
+	//disp = Vector2(0,0);
+	disp.x /= 50.0;
+	disp.y /= 50.0;
+	currentDisp += disp;
 	
 
 
 	//tá certo, não mexe
 
-	pistonTransform.c.set(0, 0, 1, disp.x/50);
-	pistonTransform.b.set(0, 1, 0, disp.y/50);
+	pistonTransform.GenerateTranslationMatrix(disp.x, disp.y, 0);
 
 	Float4x4 temp;
-	temp.GenerateTranslationMatrix(0, -currentHeight, 0);
+	temp.GenerateTranslationMatrix(0, 0, 0);
 	verticalTransform = temp;
-	temp.GenerateRotationMatrix(bottonAxisCenter, Vector3(1, 0, 0), (angle)*0.1);
+	temp.GenerateTranslationMatrix(disp.x, disp.y, 0);
 	verticalTransform = verticalTransform * temp;
-	temp.GenerateTranslationMatrix(0, currentHeight, 0);
+	temp.GenerateTranslationMatrix(-currentDisp.x, -currentDisp.y, 0);
 	verticalTransform = verticalTransform * temp;
-	verticalTransform.b.w += disp.y / 50;
-	currentHeight += disp.y / 50;
-	
-	
+	temp.GenerateRotationMatrix(bottonAxisCenter, Vector3(1, 0, 0), angle/50);
+	verticalTransform = verticalTransform * temp;
+	temp.GenerateTranslationMatrix(currentDisp.x, currentDisp.y, 0);
+	verticalTransform = verticalTransform * temp;
 
 	volant->transform = volant->transform * volantTransform;
-	piston->transform = piston->transform * pistonTransform;
 	vertical->transform = vertical->transform * verticalTransform;
+	piston->transform = piston->transform * pistonTransform;
 }

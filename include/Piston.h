@@ -25,7 +25,7 @@ private:
 	Float4x4 bottonAxisTransform;
 	Float4x4 topAxisTransform;
 
-	float currentHeight = 0;
+	Vector2 currentDisp = Vector2(0,0);
 
 	void OnRender(OnRenderEvent* args) override;
 	void OnUpdate(OnUpdateEvent* args) override;

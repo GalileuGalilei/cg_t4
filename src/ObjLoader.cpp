@@ -44,16 +44,24 @@ void ObjLoader::Load(const char* filename)
 			vertices.push_back(vertex);
 			currentVertexSize++;
 		}
+		
+		if (strcmp(currentStr, "vn") == 0)
+		{
+			Vector3 normal;
+			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			normals.push_back(normal);
+		}
 
 		else if (strcmp(currentStr, "f") == 0)
 		{
 			int vertexIndex[3];
-			int t; //trash
+			int normalIndex; //trash
 
-			fscanf(file, "%i//%i %i//%i %i//%i\n", &vertexIndex[0], &t, &vertexIndex[1], &t, &vertexIndex[2], &t);
+			fscanf(file, "%i//%i %i//%i %i//%i\n", &vertexIndex[0], &normalIndex, &vertexIndex[1], &normalIndex, &vertexIndex[2], &normalIndex);
 			triangles.push_back(vertexIndex[0] - 1);
 			triangles.push_back(vertexIndex[1] - 1);
 			triangles.push_back(vertexIndex[2] - 1);
+			faceNormals.push_back(normals[normalIndex - 1]);
 			currentTriangleSize += 3;
 		}
 	}
@@ -65,24 +73,28 @@ void ObjLoader::Load(const char* filename)
 
 void ObjLoader::CalculateNormalPerVertex()
 {
+	normals.clear();
 	normals.resize(vertices.size());
 
-	for (int i = 0; i < vertices.size(); i++)
+	for (int i = 0; i < triangles.size(); i += 3)
 	{
-		Vector3 normal = Vector3(0, 0, 0);
-		for (int j = 0; j < triangles.size(); j += 3)
-		{
-			if (triangles[j] == i || triangles[j + 1] == i || triangles[j + 2] == i)
-			{
-				Vector3 v1 = vertices[triangles[j + 1]] - vertices[triangles[j]];
-				Vector3 v2 = vertices[triangles[j + 2]] - vertices[triangles[j]];
-				normal += v1 * v2;
-			}
-		}
-		normal.Normalize();
-		normals[i] = normal;
+		int v1 = triangles[i];
+		int v2 = triangles[i + 1];
+		int v3 = triangles[i + 2];
+
+		Vector3 normal = faceNormals[i / 3];
+
+		normals[v1] += normal;
+		normals[v2] += normal;
+		normals[v3] += normal;
+	}
+
+	for (int i = 0; i < normals.size(); i++)
+	{
+		normals[i].Normalize();
 	}
 }
+
 
 Vector3* ObjLoader::GetVertices()
 {
