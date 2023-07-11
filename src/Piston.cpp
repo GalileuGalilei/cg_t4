@@ -40,6 +40,7 @@ Piston::Piston()
 	//todo: fix this
 	volantCenter = meshes[3]->GetCenter();
 	topAxisCenter = meshes[4]->GetCenter();
+	bottonAxisCenter = meshes[2]->GetCenter();
 
 	aux.GenerateScaleMatrix(50);
 	transform = transform * aux;
@@ -61,9 +62,14 @@ Piston::Piston()
 		{
 			verticalBotton.y = v.position.y;
 		}
-	}
 
-	bottonAxisCenter = meshes[2]->GetCenter();
+		if (v.position.x > verticalBotton.x)
+		{
+			verticalBotton.x = v.position.x;
+		}
+	}
+	//aux.GenerateRotationMatrix(verticalBotton, Vector3(0, 0, 1), 0.15);
+	//vertical->transform = vertical->transform * aux;
 }
 
 Piston::~Piston()
@@ -82,7 +88,7 @@ void Piston::OnRender(OnRenderEvent* args)
 void Piston::OnUpdate(OnUpdateEvent* args)
 {
 	Float4x4 rot;
-	rot.GenerateRotationMatrix(volantCenter, Vector3(1, 0, 0), 5 * GameManager::deltaTime);
+	rot.GenerateRotationMatrix(volantCenter, Vector3(0, 0, 1), 5 * GameManager::deltaTime);
 	topAxisTransform = rot;
 	volantTransform = rot;
 
@@ -105,8 +111,10 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
 	float angle = dir.Angle(dir + disp);
 	//disp = Vector2(0,0);
-	disp.x /= 50.0;
-	disp.y /= 50.0;
+	disp = Vector2(-disp.y, disp.x);
+	disp.x = disp.x / 50;
+	disp.y = disp.y / 50;
+
 	currentDisp += disp;
 	
 
@@ -120,12 +128,15 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	verticalTransform = temp;
 	temp.GenerateTranslationMatrix(disp.x, disp.y, 0);
 	verticalTransform = verticalTransform * temp;
+	verticalBotton.x += disp.x;
+	verticalBotton.y += disp.y;
 	temp.GenerateTranslationMatrix(-currentDisp.x, -currentDisp.y, 0);
 	verticalTransform = verticalTransform * temp;
-	temp.GenerateRotationMatrix(bottonAxisCenter, Vector3(1, 0, 0), angle/50);
+	temp.GenerateRotationMatrix(verticalBotton, Vector3(0, 0, 1), -angle/20);
 	verticalTransform = verticalTransform * temp;
 	temp.GenerateTranslationMatrix(currentDisp.x, currentDisp.y, 0);
 	verticalTransform = verticalTransform * temp;
+
 
 	volant->transform = volant->transform * volantTransform;
 	vertical->transform = vertical->transform * verticalTransform;

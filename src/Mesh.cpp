@@ -94,7 +94,8 @@ inline void Mesh::DrawPixel(Vertex& i)
 	normal.Normalize();
 
 	float intensity = std::max(normal.Dot(lightDir), ambientLight);
-	glColor3f(normal.x, normal.y, normal.z);
+	//glColor3f(normal.x, normal.y, normal.z);
+	glColor3f(intensity, intensity, intensity);
 	glVertex2d(x, y);
 }
 
