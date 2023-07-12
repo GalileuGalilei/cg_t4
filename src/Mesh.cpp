@@ -95,8 +95,8 @@ inline void Mesh::DrawPixel(Vertex& i)
 
 	float intensity = std::max(normal.Dot(lightDir), ambientLight);
 	//glColor3f(normal.x, normal.y, normal.z);
-	glColor3f(intensity, intensity, intensity);
-	glVertex2d(x, y);
+	CV::color(intensity, intensity, intensity);
+	CV::point(x, y);
 }
 
 Vector3 Barycentric(Vector4& a, Vector4& b, Vector4& c, Vector2& point)
@@ -148,7 +148,6 @@ void Mesh::DrawTriangle(Vertex a, Vertex b, Vertex c)
 
 void Mesh::DrawTriangles(int start, int end)
 {
-	glBegin(GL_POINTS);
 	Vector4 center = Vector4((float)screenWidth / 2, (float)screenHeight / 2, 0, 0);
 
 	CV::color(0, 0, 0);
@@ -176,12 +175,10 @@ void Mesh::DrawTriangles(int start, int end)
 		CV::color(color, color, color);
 		DrawTriangle(v1, v2, v3);
 	}
-	glEnd();
 }
 
 void Mesh::Draw()
 {
-	glBegin(GL_POINTS);
 	Vector4 center = Vector4((float)screenWidth / 2, (float)screenHeight / 2, 0, 0);
 
 	CV::color(0, 0, 0);
@@ -209,7 +206,6 @@ void Mesh::Draw()
 		CV::color(color, color, color);
 		DrawTriangle(v1, v2, v3);
 	}
-	glEnd();
 }
 
 void Mesh::ParallelDraw()

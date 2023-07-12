@@ -56,5 +56,5 @@ void GameManager::SetScreen(Vector2 screenSize)
 {
 	screenSize = screenSize;
 	Mesh::SetScreen(screenSize.x, screenSize.y);
-	Mesh::SetLightSource(Vector3(100, 500, -20));
+	Mesh::SetLightSource(Vector3(100, 400, 10));
 }

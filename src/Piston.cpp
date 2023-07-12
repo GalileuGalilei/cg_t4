@@ -1,6 +1,31 @@
 #include "Piston.h"
 #include <thread>
 #include "GameManager.h"
+#include <algorithm>
+
+void Piston::OnClick(OnClickEvent* args)
+{
+	if (args->state == 0)
+		shouldRotateByMouse = true;
+	else
+		shouldRotateByMouse = false;
+}
+
+void Piston::OnMouseOver(OnMouseOverEvent* args)
+{
+	if (shouldRotateByMouse)
+	{
+		float angle = args->translation.x;
+		Float4x4 aux;
+		aux.GenerateRotationMatrix(Vector3(-1, 0, 0), Vector3(0, 1, 0), angle / 100.0);
+		generalTransform = generalTransform * aux;
+
+	}
+	if (args->wheel != -2)
+	{
+		pistonAngle += args->wheel / 30.0;
+	}
+}
 
 Piston::Piston()
 {
@@ -83,7 +108,7 @@ void Piston::OnRender(OnRenderEvent* args)
 }
 
 
-
+//essa é uma das coisas mais terríveis que já escrevi na vida, me pedoe Natan.
 void Piston::OnUpdate(OnUpdateEvent* args)
 {
 	currentAngle += 5 * GameManager::deltaTime;
@@ -122,7 +147,10 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
 	
 	Float4x4 leftsCorrection;
-	leftsCorrection.GenerateRotationMatrix(topAxisCenter, Vector3(0, 0, 1), PI / 2);
+	leftsCorrection.GenerateRotationMatrix(topAxisCenter, Vector3(0, 0, 1), pistonAngle);
+	Float4x4 aux2;
+	aux2.GenerateTranslationMatrix(-0.03, -0.1, -0.5);
+	leftsCorrection = leftsCorrection * aux2;
 
 	
 	rightPiston->transform = generalTransform * pistonTrans;
@@ -131,13 +159,11 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	volant->transform = generalTransform * rot;
 	topAxis->transform = generalTransform * rot;
 
-	verticalRot.GenerateRotationMatrix(aux, Vector3(0, 0, 1), -verticalAngle);
-	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
+	Vector4 verticalBotton2 = leftsCorrection * verticalBotton;
+	Vector4 topAxisCenter2 = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
 
-	Vector4 verticalBotton2 = leftsCorrection * verticalBotton2;
-
-	aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
-	dir = Vector2(verticalBotton2.x, verticalBotton2.y) - Vector2(topAxisCenter.x, topAxisCenter.y);
+	aux = Vector4(topAxisCenter2.x, topAxisCenter2.y, topAxisCenter2.z, 1);
+	dir = Vector2(verticalBotton2.x, verticalBotton2.y) - Vector2(topAxisCenter2.x, topAxisCenter2.y);
 	disp = Vector2(0, 0);
 	newAux = dir;
 	dir.normalize();
@@ -164,6 +190,6 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
 
 	
-	leftPiston->transform = generalTransform * leftsCorrection * pistonTrans;
-	leftVertical->transform =  generalTransform * leftsCorrection * (verticalRot * verticalTrans);
+	leftPiston->transform = generalTransform * pistonTrans * leftsCorrection;
+	leftVertical->transform =  generalTransform * (verticalRot * verticalTrans) * leftsCorrection;
 }

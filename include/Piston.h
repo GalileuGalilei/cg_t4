@@ -3,7 +3,7 @@
 #include "Mesh.h"
 #include "GameEvents.h"
 
-class Piston : IRenderable, IUpdatable
+class Piston : IRenderable, IUpdatable, IClickable
 {
 private:
 	Mesh* rightPiston;
@@ -21,9 +21,14 @@ private:
 
 	Float4x4 generalTransform;
 	float currentAngle = 0;
+	float pistonAngle = PI / 1.75f;
+	float mouseAngle = 0;
+	bool shouldRotateByMouse = false;
 
 	void OnRender(OnRenderEvent* args) override;
 	void OnUpdate(OnUpdateEvent* args) override;
+	void OnClick(OnClickEvent* args) override;
+	void OnMouseOver(OnMouseOverEvent* args) override;
 
 public:
 	Piston();
