@@ -134,6 +134,36 @@ void Piston::OnUpdate(OnUpdateEvent* args)
 	verticalRot.GenerateRotationMatrix(aux, Vector3(0, 0, 1), -verticalAngle);
 	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
 
+	Vector4 verticalBotton2 = leftsCorrection * verticalBotton2;
+
+	aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
+	dir = Vector2(verticalBotton2.x, verticalBotton2.y) - Vector2(topAxisCenter.x, topAxisCenter.y);
+	disp = Vector2(0, 0);
+	newAux = dir;
+	dir.normalize();
+	disp = Vector2(aux.x, aux.y);
+	aux = rot * aux;
+	disp = disp - aux;
+	disp = disp.ortoProject(dir) * (-1);
+	dir = Vector2(dir.y, -dir.x);
+
+	dir = Vector2(verticalBotton2.x + disp.x, verticalBotton2.y + disp.y) - Vector2(aux.x, aux.y);
+	verticalAngle = -dir.Angle(newAux);
+	aux = verticalBotton2;
+	aux.x += disp.x;
+	aux.y += disp.y;
+
+	pistonTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
+	dispRot.GenerateRotationMatrix(verticalAngle);
+	//disp = dispRot * disp;
+
+
+	verticalRot;
+	verticalRot.GenerateRotationMatrix(aux, Vector3(0, 0, 1), verticalAngle);
+	verticalTrans;
+	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
+
+	
 	leftPiston->transform = generalTransform * leftsCorrection * pistonTrans;
 	leftVertical->transform =  generalTransform * leftsCorrection * (verticalRot * verticalTrans);
 }
