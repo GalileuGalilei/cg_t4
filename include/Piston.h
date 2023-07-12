@@ -6,8 +6,10 @@
 class Piston : IRenderable, IUpdatable
 {
 private:
-	Mesh* piston;
-	Mesh* vertical; //conecta com o pistao
+	Mesh* rightPiston;
+	Mesh* rightVertical; //conecta com o pistao
+	Mesh* leftPiston;
+	Mesh* leftVertical; 
 	Mesh* bottonAxis; //conecta com o volant
 	Mesh* volant;
 	Mesh* topAxis;
@@ -17,15 +19,8 @@ private:
 	Vector3 volantCenter;
 	Vector4 verticalBotton = Vector4(0,-99999,0,1);
 
-	Float4x4 transform;
-
-	Float4x4 volantTransform;
-	Float4x4 pistonTransform;
-	Float4x4 verticalTransform;
-	Float4x4 bottonAxisTransform;
-	Float4x4 topAxisTransform;
-
-	Vector2 currentDisp = Vector2(0,0);
+	Float4x4 generalTransform;
+	float currentAngle = 0;
 
 	void OnRender(OnRenderEvent* args) override;
 	void OnUpdate(OnUpdateEvent* args) override;

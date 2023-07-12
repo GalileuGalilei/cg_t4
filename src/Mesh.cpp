@@ -232,3 +232,12 @@ void Mesh::ParallelDraw()
 		threads[i].join();
 	}
 }
+
+Mesh* Mesh::MakeCopy()
+{
+	Mesh* mesh = new Mesh();
+	mesh->vertices = vertices;
+	mesh->triangles = triangles;
+	mesh->transform = transform;
+	return mesh;
+}

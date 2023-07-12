@@ -48,6 +48,7 @@ public:
 	Float4x4 transform; //transformacao do objeto
 
 	void Load(const char* filename);
+	Mesh* MakeCopy();
 
 	void Draw();
 	void ParallelDraw();

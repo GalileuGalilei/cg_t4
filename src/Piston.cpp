@@ -32,29 +32,26 @@ Piston::Piston()
 	
 	Float4x4 aux;
 	aux.GeneratePerpectiveMatrix(200, 100);
-	transform = transform * aux;
+	generalTransform = generalTransform * aux;
 
-	aux.GenerateTranslationMatrix(300, 300, -250);
-	transform = transform * aux;
+	aux.GenerateTranslationMatrix(370, 300, -250);
+	generalTransform = generalTransform * aux;
 
-	//todo: fix this
+	aux.GenerateScaleMatrix(50);
+	generalTransform = generalTransform * aux;
+	
 	volantCenter = meshes[3]->GetCenter();
 	topAxisCenter = meshes[4]->GetCenter();
 	bottonAxisCenter = meshes[2]->GetCenter();
-
-	aux.GenerateScaleMatrix(50);
-	transform = transform * aux;
 	
-	piston = meshes[0];
-	piston->transform = transform;
-	vertical = meshes[1];
-	vertical->transform = transform;
+	rightPiston = meshes[0];
+	rightVertical = meshes[1];
 	bottonAxis = meshes[2];
-	bottonAxis->transform = transform;
 	volant = meshes[3];
-	volant->transform = transform;
 	topAxis = meshes[4];
-	topAxis->transform = transform;
+
+	leftPiston = rightPiston->MakeCopy();
+	leftVertical = rightVertical->MakeCopy();
 
 	for (Vertex v : meshes[1]->vertices)
 	{
@@ -68,8 +65,6 @@ Piston::Piston()
 			verticalBotton.x = v.position.x;
 		}
 	}
-	//aux.GenerateRotationMatrix(verticalBotton, Vector3(0, 0, 1), 0.15);
-	//vertical->transform = vertical->transform * aux;
 }
 
 Piston::~Piston()
@@ -78,67 +73,67 @@ Piston::~Piston()
 
 void Piston::OnRender(OnRenderEvent* args)
 {
-	piston->Draw();
-	vertical->Draw();
+	rightPiston->Draw();
+	rightVertical->Draw();
+	leftPiston->Draw();
+	leftVertical->Draw();
 //	bottonAxis->Draw();
 	volant->Draw();
 	topAxis->Draw();
 }
 
+
+
 void Piston::OnUpdate(OnUpdateEvent* args)
 {
+	currentAngle += 5 * GameManager::deltaTime;
 	Float4x4 rot;
-	rot.GenerateRotationMatrix(volantCenter, Vector3(0, 0, 1), 5 * GameManager::deltaTime);
-	topAxisTransform = rot;
-	volantTransform = rot;
+	rot.GenerateRotationMatrix(volantCenter, Vector3(0, 0, 1), currentAngle);
 
-	
-	Vector2 disp = Vector2(0, 0);
-	
-	Vector2 dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
 
 	Vector4 aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
-	aux = topAxis->transform * aux;
-	disp = Vector2(aux.x, aux.y);
-	topAxis->transform = topAxis->transform * topAxisTransform;
-
-	aux = Vector4(topAxisCenter.x, topAxisCenter.y, topAxisCenter.z, 1);
-	aux = topAxis->transform * aux;
-	disp = Vector2(aux.x, aux.y) - disp;
-	dir = Vector2(-dir.y, dir.x);
+	Vector2 dir = Vector2(verticalBotton.x, verticalBotton.y) - Vector2(topAxisCenter.x, topAxisCenter.y);
+	Vector2 disp = Vector2(0, 0);
+	Vector2 newAux = dir;
 	dir.normalize();
-	disp = disp.ortoProject(dir);
-	dir = Vector2(bottonAxisCenter.x, bottonAxisCenter.y) - Vector2(volantCenter.x, volantCenter.y);
-	float angle = dir.Angle(dir + disp);
-	//disp = Vector2(0,0);
-	disp = Vector2(-disp.y, disp.x);
-	disp.x = disp.x / 50;
-	disp.y = disp.y / 50;
+	disp = Vector2(aux.x, aux.y);
+	aux = rot * aux;
+	disp = disp - aux;
+	disp = disp.ortoProject(dir) * (-1);
+	dir = Vector2(dir.y, -dir.x);
 
-	currentDisp += disp;
+	dir = Vector2(verticalBotton.x + disp.x, verticalBotton.y + disp.y) - Vector2(aux.x, aux.y);
+	float verticalAngle = -dir.Angle(newAux);
+	aux = verticalBotton;
+	aux.x += disp.x;
+	aux.y += disp.y;
 	
+	Float4x4 pistonTrans;
+	pistonTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
 
+	Float2x2 dispRot;
+	dispRot.GenerateRotationMatrix(verticalAngle);
+	//disp = dispRot * disp;
 
-	//tá certo, não mexe
+	
+	Float4x4 verticalRot;
+	verticalRot.GenerateRotationMatrix(aux, Vector3(0, 0, 1), verticalAngle);
+	Float4x4 verticalTrans;
+	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
+	
+	Float4x4 leftsCorrection;
+	leftsCorrection.GenerateRotationMatrix(topAxisCenter, Vector3(0, 0, 1), PI / 2);
 
-	pistonTransform.GenerateTranslationMatrix(disp.x, disp.y, 0);
+	
+	rightPiston->transform = generalTransform * pistonTrans;
+	rightVertical->transform = generalTransform * (verticalRot * verticalTrans);
+	bottonAxis->transform = generalTransform;
+	volant->transform = generalTransform * rot;
+	topAxis->transform = generalTransform * rot;
 
-	Float4x4 temp;
-	temp.GenerateTranslationMatrix(0, 0, 0);
-	verticalTransform = temp;
-	temp.GenerateTranslationMatrix(disp.x, disp.y, 0);
-	verticalTransform = verticalTransform * temp;
-	verticalBotton.x += disp.x;
-	verticalBotton.y += disp.y;
-	temp.GenerateTranslationMatrix(-currentDisp.x, -currentDisp.y, 0);
-	verticalTransform = verticalTransform * temp;
-	temp.GenerateRotationMatrix(verticalBotton, Vector3(0, 0, 1), -angle/20);
-	verticalTransform = verticalTransform * temp;
-	temp.GenerateTranslationMatrix(currentDisp.x, currentDisp.y, 0);
-	verticalTransform = verticalTransform * temp;
+	verticalRot.GenerateRotationMatrix(aux, Vector3(0, 0, 1), -verticalAngle);
+	verticalTrans.GenerateTranslationMatrix(disp.x, disp.y, 0);
 
-
-	volant->transform = volant->transform * volantTransform;
-	vertical->transform = vertical->transform * verticalTransform;
-	piston->transform = piston->transform * pistonTransform;
+	leftPiston->transform = generalTransform * leftsCorrection * pistonTrans;
+	leftVertical->transform =  generalTransform * leftsCorrection * (verticalRot * verticalTrans);
 }
